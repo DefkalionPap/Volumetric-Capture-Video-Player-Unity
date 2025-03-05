@@ -1,26 +1,26 @@
 # unityplugin
 Unity Plugin
+
 **Name** 
-glTF Importer for Unity
+glTF Volumetric Capture Importer for Unity
 
 **Description**
 Allows designers and developers to import glTF files in the unity editor to include volumetric capture videos in their projects.
 
 **Badges**
-
+[Insert Badges]
 
 **Visuals**
-
+[Insert Visuals]
 
 **Installation**
-1. Download the glTFImporter.cs script from GitHub
-2. Drag the script inside your project's asset folder
-3. Create an empty GameObject in your scene
-4. Add glTFImporter.cs as a component in the empty GameObject you created in the previous step
-
+1. Install glTFast: com.unity.cloud.gltfast
+2. Download the glTFImporter.cs script from GitHub
+3. Drag the script inside your project's asset folder
+4. Drag the VoCapglTF prefab in your scene's hierarchy 
 
 **Usage**
-
+[Insert Usage]
 
 **Support**
 deucalionpapadopoulos@gmail.com
@@ -35,11 +35,17 @@ VR Implementation
 Not accepting contributions
 
 **Authors and acknowledgment**
-Defkalion Nikolaos Papadopoulos
+Dimitrios Zarpalas, [Insert Title]
+Dimitrios Pattas, [Insert Title]
+Antonios Karakottas, [Insert Title]
+.
+.
+.
+Defkalion Nikolaos Papadopoulos, Intern
 The Center for Research & Technology, Hellas
 
 **License**
-No License
+[Insert License]
 
 **Project status**
 Under development
