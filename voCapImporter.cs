@@ -9,7 +9,7 @@ public class VoCapImporter : MonoBehaviour
     #region Methods
     public void Update()
     {
-        if (glbObject != null)       //Check if file is glTF or glb
+        if (glbObject != null) 
         {
             SpawnObject();
         } 
@@ -18,7 +18,7 @@ public class VoCapImporter : MonoBehaviour
     {
         if (addObject)
         {
-            //Add components to file, then instantiate
+            //Remember to add components
             Instantiate(glbObject);
             addObject = false;
         }
