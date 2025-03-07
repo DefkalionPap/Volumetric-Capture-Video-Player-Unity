@@ -12,6 +12,8 @@ public class VolCapImporter : MonoBehaviour
     [SerializeField] private bool loop = true;
     bool loaded = false;
     int renderedFrames = 0;
+    private float timer = 0;
+    float frameDuration;
     private List<Mesh> volCapMeshes = new List<Mesh>() ;
     List<Texture> volCapTextures = new List<Texture>();
     string path;
@@ -25,24 +27,24 @@ public class VolCapImporter : MonoBehaviour
         //Load File
         LoadGltfBinaryFromMemory();
     }
-    
-    public void FixedUpdate()
+
+    public void FixedUpdate() 
     {
-        if (loaded)
+        timer += Time.fixedDeltaTime;
+        frameDuration = 1f / FPS; //AI Assisted
+        if (timer >= frameDuration && loaded)
         {
-            if (renderedFrames < volCapMeshes.Count - 1)
+            if (renderedFrames < volCapMeshes.Count)
             {
-                for (int i = 0; i < FPS; i++)
-                {
-                    gameObject.GetComponent<MeshFilter>().mesh = volCapMeshes[renderedFrames];
-                    gameObject.GetComponent<Renderer>().material.mainTexture = volCapTextures[renderedFrames];
-                    Debug.Log("Rendered Frames: " + renderedFrames);
-                    renderedFrames++;
-                }
+                MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
+                Renderer renderer = gameObject.GetComponent<Renderer>();
+                meshFilter.mesh = volCapMeshes[renderedFrames];
+                renderer.material.mainTexture = volCapTextures[renderedFrames];
+                renderedFrames++;
+                timer -= frameDuration; // Reset timer and Keep the overflow to carry forward the remainder - AI Assisted 
             }
-            else if (renderedFrames == volCapMeshes.Count - 1 && loop == true)                //Loops video
+            else if (renderedFrames >= volCapMeshes.Count && loop)
             {
-                
                 renderedFrames = 0;
             }
         }
@@ -50,16 +52,13 @@ public class VolCapImporter : MonoBehaviour
     
     async void LoadGltfBinaryFromMemory() {
         
-        // Code from documentation starts here
-        var filePath = path;
-        byte[] data = File.ReadAllBytes(filePath);
+        byte[] data = File.ReadAllBytes(path);
         var gltf = new GltfImport();
         bool success = await gltf.LoadGltfBinary(
             data,
             // The URI of the original data is important for resolving relative URIs within the glTF
-            new Uri(filePath)
+            new Uri(path)
         );
-        // Code from documentation ends here
         
         // Show values on console
         Debug.Log(success);
@@ -99,8 +98,5 @@ public class VolCapImporter : MonoBehaviour
        //Update Mesh
        //Update Texture
 
-    }
-
-    
-   
+    }  
 }
