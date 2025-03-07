@@ -5,7 +5,7 @@ Unity Plugin
 glTF Volumetric Capture Importer for Unity
 
 **Description**
-Allows designers and developers to import glTF files in the unity editor to include volumetric capture videos in their projects.
+Allows designers, developers, and filmmakers to import glTF volumetric capture videos in their projects
 
 **Badges**
 [Insert Badges]
@@ -26,7 +26,7 @@ Allows designers and developers to import glTF files in the unity editor to incl
 deucalionpapadopoulos@gmail.com
 
 **Roadmap**
-Large file support (>1gb)
+Large file support (2gbs)
 Write shader that removes shadows and fix artifacts
 VR Implementation
 
