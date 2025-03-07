@@ -15,9 +15,9 @@ Allows designers and developers to import glTF files in the unity editor to incl
 
 **Installation**
 1. Install glTFast: com.unity.cloud.gltfast
-2. Download the glTFImporter.cs script from GitHub
-3. Drag the script inside your project's asset folder
-4. Drag the VoCapglTF prefab in your scene's hierarchy 
+2. Download the VolCapImporter.cs script from GitHub
+3. Drag the script inside your project's assets folder
+4. Create an empty game object and add VolCapImporter as a component
 
 **Usage**
 [Insert Usage]
@@ -26,9 +26,8 @@ Allows designers and developers to import glTF files in the unity editor to incl
 deucalionpapadopoulos@gmail.com
 
 **Roadmap**
-Update mesh according to glTF file
-Update materials
-Test with volumetric capture video
+Large file support (>1gb)
+Write shader that removes shadows and fix artifacts
 VR Implementation
 
 **Contributing**
