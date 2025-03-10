@@ -5,9 +5,13 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+
 public class VolCapImporter : MonoBehaviour
 {
-    [SerializeField] GameObject glbObject;
+    
+    #region Fields
+    GameObject glbObject;
     [SerializeField] private float FPS = 30;
     [SerializeField] private bool loop = true;
     bool loaded = false;
@@ -16,10 +20,16 @@ public class VolCapImporter : MonoBehaviour
     float frameDuration;
     private List<Mesh> volCapMeshes = new List<Mesh>() ;
     List<Texture> volCapTextures = new List<Texture>();
+    [SerializeField] List<GameObject> glTFObjects;
     string path;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    int objectIndex = 0;
+    #endregion
+
+    #region Methods
+    
     void Start()
     {
+        glbObject = glTFObjects[objectIndex];
         path = Application.dataPath + AssetDatabase.GetAssetPath( glbObject ).Replace( "Assets", "" );                     // Gets asset's absolute path
         Debug.Log( path );
         gameObject.transform.rotation = Quaternion.Euler( -90, 0, 180 );
@@ -29,30 +39,45 @@ public class VolCapImporter : MonoBehaviour
     }
 
     public void FixedUpdate() 
-    {
+    { 
         timer += Time.fixedDeltaTime;
-        frameDuration = 1f / FPS; //AI Assisted
+        frameDuration = 1f / FPS; //AI assisted line
+        
+        //if (renderedFrames >= volCapMeshes.Count && !loop && objectIndex < glTFObjects.Count - 1)
+       // {
+            //objectIndex++;
+            //glbObject = glTFObjects[objectIndex];
+            //path = Application.dataPath + AssetDatabase.GetAssetPath( glbObject ).Replace( "Assets", "" );                     // Gets asset's absolute path
+            //Debug.Log( path );
+            //gameObject.transform.rotation = Quaternion.Euler( -90, 0, 180 );
+            // //Load File
+            //LoadGltfBinaryFromMemory();
+      //  }
         if (timer >= frameDuration && loaded)
         {
-            if (renderedFrames < volCapMeshes.Count)
+            if (renderedFrames < volCapMeshes.Count) //AI assisted line
             {
                 MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
                 Renderer renderer = gameObject.GetComponent<Renderer>();
                 meshFilter.mesh = volCapMeshes[renderedFrames];
                 renderer.material.mainTexture = volCapTextures[renderedFrames];
                 renderedFrames++;
-                timer -= frameDuration; // Reset timer and Keep the overflow to carry forward the remainder - AI Assisted 
-            }
-            else if (renderedFrames >= volCapMeshes.Count && loop)
-            {
-                renderedFrames = 0;
+                timer -= frameDuration; // Reset timer and Keep the overflow to carry forward the remainder - AI assisted line
             }
         }
     }
     
     async void LoadGltfBinaryFromMemory() {
         
-        byte[] data = File.ReadAllBytes(path);
+        byte[] data;
+        using (StreamReader streamReader = new StreamReader(path))
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                streamReader.BaseStream.CopyTo(memoryStream);
+                data = memoryStream.ToArray();
+            }
+        }
         var gltf = new GltfImport();
         bool success = await gltf.LoadGltfBinary(
             data,
@@ -64,7 +89,6 @@ public class VolCapImporter : MonoBehaviour
         Debug.Log(success);
         if (success)   
             loaded = true;
-        
         Debug.Log("Scene Count: " + gltf.SceneCount);
         Debug.Log("Material Count: " + gltf.MaterialCount);
         Debug.Log("Texture Count: " + gltf.TextureCount);
@@ -86,17 +110,17 @@ public class VolCapImporter : MonoBehaviour
             volCapTextures.Add(gltf.GetTexture(i));
         }
         
-       //Add components
-       gameObject.AddComponent<MeshFilter>();
-       gameObject.AddComponent<MeshRenderer>();
+        AddComponents();
        
-       //Set first mesh and texture
-       gameObject.GetComponent<MeshFilter>().mesh = volCapMeshes[0];
-       gameObject.GetComponent<Renderer>().material.mainTexture = volCapTextures[0];
-       gameObject.GetComponent<Renderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
-       
-       //Update Mesh
-       //Update Texture
+    }
 
-    }  
+    public void AddComponents()
+    {
+        //Add components
+        gameObject.AddComponent<MeshFilter>();
+        gameObject.AddComponent<MeshRenderer>();
+        gameObject.GetComponent<MeshRenderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
+    }
+
+    #endregion
 }
