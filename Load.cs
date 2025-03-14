@@ -9,9 +9,8 @@ using UnityEditor;
 
 public class Load : MonoBehaviour
 {
+    [SerializeField] private string prefabName = "VolCap";
     bool loaded = false;
-    [SerializeField] List<Mesh> volCapMeshes = new List<Mesh>();
-    [SerializeField] List<Texture> volCapTextures = new List<Texture>();
     int objectIndex = 0;
     int successCount = 0;
     bool over = false;
@@ -20,8 +19,13 @@ public class Load : MonoBehaviour
     public string folder;
     string path;
     [SerializeField] List<GameObject> sequence = new List<GameObject>();
+    public List<Mesh> volCapMeshes = new List<Mesh>();
+    public List<Texture> volCapTextures = new List<Texture>();
     string temp;
     GameObject instObject;
+    
+    public List<Mesh> Meshes { get { return volCapMeshes; } }
+    public List<Texture> Textures { get { return volCapTextures; } }
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -98,19 +102,30 @@ public class Load : MonoBehaviour
                         if (objectIndex == sequence.Count - 1)
                             over = true;
                     }
-                    // Instantiates object
-                    instObject = Instantiate(gameObject); // Creates prefab with meshes and textures
-                    Destroy(instObject.GetComponent<Load>()); // Disables loader script
-                    instObject.AddComponent<MeshRenderer>();
-                    instObject.AddComponent<MeshFilter>();
-                    instObject.AddComponent<VolumetricCapturePlayer>(); // Adds video player
-                    instObject.GetComponent<VolumetricCapturePlayer>().Sequence = sequence;
-                    instObject.GetComponent<VolumetricCapturePlayer>().SequenceMeshes = volCapMeshes;
-                    instObject.GetComponent<VolumetricCapturePlayer>().SequenceTextures = volCapTextures;
-                    //    instObject.GetComponent<VolumetricCapturePlayer>().Over = over;
-                    //   instObject.GetComponent<VolumetricCapturePlayer>().Loaded = loaded;
-                    string prefabPath = "Assets/Prefabs/" + instObject.name + ".prefab";
-                    PrefabUtility.SaveAsPrefabAssetAndConnect(instObject, prefabPath, InteractionMode.UserAction);
+                    
+                    // Create Scriptable Object
+                    var vcData = ScriptableObject.CreateInstance<VolCapData>();
+                    vcData.sequence = sequence; 
+                    vcData.name = prefabName + "_" + "Data";
+                    string dataPath = "Assets/Data/" + vcData.name + ".asset";
+                    AssetDatabase.CreateAsset(vcData, dataPath );
+                    
+                    // Creates prefab
+                    gameObject.transform.position = new Vector3(0, 0.5f, 0);
+                    
+                    string prefabPath = "Assets/Prefabs/" + prefabName + ".prefab";
+                    var prefab = PrefabUtility.SaveAsPrefabAsset(gameObject, prefabPath);
+                    prefab.name = prefabName;
+                    prefab.AddComponent<MeshFilter>();
+                    prefab.AddComponent<MeshRenderer>();
+                    prefab.AddComponent<LoadData>();
+                    prefab.AddComponent<LoadMeshesAndTextures>();
+                    prefab.AddComponent<VolumetricCapturePlayer>(); // Adds video player
+                    prefab.GetComponent<Load>().enabled = false;
+                    
+
+  
+                    // prefab.GetComponent<LoadOnPrefab>().PrefabPath = prefabPath;
                 }
     
 }
