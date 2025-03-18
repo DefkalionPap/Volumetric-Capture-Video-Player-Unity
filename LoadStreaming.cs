@@ -7,7 +7,7 @@ using GLTFast;
 using System.Linq;
 using UnityEngine.Networking;
 
-public class GrabUri : MonoBehaviour
+public class LoadStreaming : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
