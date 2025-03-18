@@ -6,56 +6,26 @@ using UnityEngine;
 using GLTFast;
 using System.Linq;
 using UnityEngine.Networking;
+using Better.StreamingAssets;
 
 public class LoadStreaming : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        Debug.Log("Hello!");
-        
-        
-       // #if UNITY_ANDROID
-        string[] glb = Directory.GetFiles(Application.streamingAssetsPath).ToArray(); // Include "jar:file://"
-        byte[] dataA = File.ReadAllBytes(glb[0]);                   //A for Android
-        if (glb.Length != 0)
-        {
-            gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-        }
-        LoadGltfBinaryFromMemory(glb[0], dataA);  
-        //StartCoroutine(GetRequest(glb[0]));
-      //  #endif
-        
-       // #if UNITY_EDITOR
-       // 
-        //Debug.Log(glb[0]);
-       // byte[] data = File.ReadAllBytes(glb[0]);
-       // LoadGltfBinaryFromMemory(glb[0], data);
-       // #endif
-      
-        
-    }
-     
-    IEnumerator GetRequest(string uri)
-    { 
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
-        {
-            // Request and wait for the desired page.
-            
-            yield return webRequest.SendWebRequest();
+        // #if UNITY_ANDROID
+        // Include "jar:file://"
 
-            gameObject.GetComponent<MeshRenderer>().material.color = Color.blue;
+        BetterStreamingAssets.Initialize();
+        string[] glb = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
+        string absPath = Application.streamingAssetsPath + "/" + glb[0];
         
-            string fileUri = uri;
-            Debug.Log("File Uri: " + fileUri);
-            byte[] data = webRequest.downloadHandler.data;
-            if (data.Length != 0)
-            {
-                gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-            }
-            LoadGltfBinaryFromMemory(fileUri, data);
-        }
+        Debug.Log(Application.streamingAssetsPath + "/" + glb[0]);
+        byte[] data = BetterStreamingAssets.ReadAllBytes(glb[0]);
+        
+        LoadGltfBinaryFromMemory(absPath, data);   
     }
+    
     
     async void LoadGltfBinaryFromMemory(string fileUri, byte[] data)
     {
@@ -90,14 +60,15 @@ public class LoadStreaming : MonoBehaviour
             }
 
             //Set first texture and mesh
-            GameObject tempObj = Instantiate(new GameObject());
-            tempObj.AddComponent<MeshFilter>().mesh = meshes[0];
-            tempObj.AddComponent<MeshRenderer>().material.mainTexture = textures[0];
-            tempObj.transform.position = new Vector3(0, 0, 0);
-            tempObj.transform.rotation = Quaternion.Euler(-90, 0, 0);
-            tempObj.transform.localScale = new Vector3(1, -1, 1);
-            tempObj.transform.localScale = tempObj.transform.localScale / 4;
-            tempObj.GetComponent<MeshRenderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
+           // GameObject tempObj = Instantiate(new GameObject());
+           
+            gameObject.AddComponent<MeshFilter>().mesh = meshes[0];
+            gameObject.AddComponent<MeshRenderer>().material.mainTexture = textures[0];
+            gameObject.transform.position = new Vector3(0, 0, 0);
+            gameObject.transform.rotation = Quaternion.Euler(-90, 0, 0);
+            gameObject.transform.localScale = new Vector3(1, -1, 1);
+            gameObject.transform.localScale = gameObject.transform.localScale / 4;
+            //gameObject.GetComponent<MeshRenderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
         }
     }
 
