@@ -1,5 +1,5 @@
-# unityplugin
-Unity Plugin
+# Volumetric-Capture-Video-Importer-Unity
+Volumetric Capture Video Importer for Unity
 
 **Name** 
 glTF Volumetric Capture Importer for Unity
@@ -26,9 +26,7 @@ Allows designers, developers, and filmmakers to import glTF volumetric capture v
 deucalionpapadopoulos@gmail.com
 
 **Roadmap**
-Large file support (2gbs)
-Write shader that removes shadows and fix artifacts
-VR Implementation
+AR and VR Implementation
 
 **Contributing**
 Not accepting contributions
