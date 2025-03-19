@@ -1,8 +1,4 @@
-# Volumetric-Capture-Video-Importer-Unity
-Volumetric Capture Video Importer for Unity
-
-**Name** 
-glTF Volumetric Capture Importer for Unity
+# Volumetric Capture Video Importer Unity
 
 **Description**
 Allows designers, developers, and filmmakers to import glTF volumetric capture videos in their projects
