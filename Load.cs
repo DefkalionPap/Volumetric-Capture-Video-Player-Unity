@@ -1,131 +1,108 @@
+using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using GLTFast;
-using System;
-using UnityEditor;
-
+using System.Linq;
+using UnityEngine.Networking;
+using Better.StreamingAssets;
 
 public class Load : MonoBehaviour
 {
-    [SerializeField] private string prefabName = "VolCap";
-    bool loaded = false;
-    int objectIndex = 0;
-    int successCount = 0;
-    bool over = false;
-    bool hasComponents = false;
-    List<string> filePath = new List<string>();
-    public string folder;
-    string path;
-    [SerializeField] List<GameObject> sequence = new List<GameObject>();
-    public List<Mesh> volCapMeshes = new List<Mesh>();
-    public List<Texture> volCapTextures = new List<Texture>();
-    string temp;
-    GameObject instObject;
+    private GameObject tempObj;
+    [SerializeField] string[] sequence;
+ // [SerializeField] string[] absPath;
+    List<Mesh> meshes = new List<Mesh>();
+    List<Texture> textures = new List<Texture>();
+    private bool over = false;
+    bool last = false;
+    private bool loadVideo = false;
     
-    public List<Mesh> Meshes { get { return volCapMeshes; } }
-    public List<Texture> Textures { get { return volCapTextures; } }
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public string[] Sequence { get => sequence; set => sequence = value; }
+    public List<Mesh> Meshes { get => meshes; set => meshes = value; }
+    public List<Texture> Textures { get => textures; set => textures = value; }
     void Start()
     {
-        path = Application.dataPath + "/Resources/" + folder;
-        string[] files = Directory.GetFiles(path).Where(s => s.EndsWith(".glb")).ToArray();
-
-        // Debug log
-        for (int i = 0; i < files.Length; i++)
-        {
-            // Debug.Log(files[i]);
-        }
-
-        // Get files
-        for (int i = 0; i < files.Length; i++)
-        {
-            temp = folder + "/" + Path.GetFileNameWithoutExtension(files[i]);
-            //Debug.Log(temp);
-            filePath.Add(files[i]);
-            //Debug.Log(filePath[i]);
-            sequence.Add(Resources.Load<GameObject>(temp));
-        }
         
-        LoadGltfBinaryFromMemory();
+        tempObj = GameObject.FindGameObjectWithTag("Video");
+        tempObj.name = "Volumetric Capture Video";
+        tempObj.transform.position = Vector3.zero;
+        tempObj.transform.rotation = Quaternion.Euler(-90,0,0);
+        tempObj.transform.localScale = tempObj.transform.localScale / 4;
+        
+        
+        
+        
+        
+        
+        BetterStreamingAssets.Initialize();
+        sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
+        
+        Debug.Log(Application.streamingAssetsPath + "/" + sequence[0]);
+        
+        byte[] data;
+
+        for (int i = 0; i < sequence.Length; i++)
+        {
+            if (i == sequence.Length - 1)
+            {
+                last = true;
+            }
+            data = BetterStreamingAssets.ReadAllBytes(sequence[i]);
+            LoadGltfBinaryFromMemory(Application.streamingAssetsPath + "/" + sequence[i], data, last);
+        }
         
     }
 
-    // Update is called once per frame
-    async void LoadGltfBinaryFromMemory()
-                {
-
-                    while (objectIndex < sequence.Count - 1)
-                    {
-                        
-                        byte[] data;
-                        temp = filePath[objectIndex];
-                        using (StreamReader streamReader = new StreamReader(temp))
-                        {
- 
-                            using (MemoryStream memoryStream = new MemoryStream())
-                            {
-                                streamReader.BaseStream.CopyTo(memoryStream);
-                                data = memoryStream.ToArray(); 
-                            }
-                        }
-
-                        var gltf = new GltfImport();
-                        bool success = await gltf.LoadGltfBinary(data, new Uri(filePath[objectIndex]));                 //The URI of the original data is important for resolving relative URIs within the glTF
-                    
-                        // Debug.Log(success);
-                        if (success)
-                            loaded = true;
-                        successCount++;
-                        Debug.Log("Video Loaded: " + successCount);
-                        int meshCount;
-                        Mesh[] meshes = gltf.GetMeshes();
-                        meshCount = meshes.Length;
-        
-                        //Load meshes
-                        for (int i = 0; i < meshCount; i++)
-                        {
-                            volCapMeshes.Add(meshes[i]);
-                        }
-        
-                        //Load textures
-                        for (int i = 0; i < gltf.TextureCount; i++)
-                        {
-                            volCapTextures.Add(gltf.GetTexture(i));
-                        }
-
-                        
-                        if (objectIndex < sequence.Count - 1)
-                            objectIndex++;
-                        if (objectIndex == sequence.Count - 1)
-                            over = true;
-                    }
-                    
-                    // Create Scriptable Object
-                    var vcData = ScriptableObject.CreateInstance<VolCapData>();
-                    vcData.sequence = sequence; 
-                    vcData.name = prefabName + "_" + "Data";
-                    string dataPath = "Assets/Data/" + vcData.name + ".asset";
-                    AssetDatabase.CreateAsset(vcData, dataPath );
-                    
-                    // Creates prefab
-                    gameObject.transform.position = new Vector3(0, 0.5f, 0);
-                    
-                    string prefabPath = "Assets/Prefabs/" + prefabName + ".prefab";
-                    var prefab = PrefabUtility.SaveAsPrefabAsset(gameObject, prefabPath);
-                    prefab.name = prefabName;
-                    prefab.AddComponent<MeshFilter>();
-                    prefab.AddComponent<MeshRenderer>();
-                    prefab.AddComponent<LoadData>();
-                    prefab.AddComponent<LoadMeshesAndTextures>();
-                    prefab.AddComponent<VolumetricCapturePlayer>(); // Adds video player
-                    prefab.GetComponent<Load>().enabled = false;
-                    
-
-  
-                    // prefab.GetComponent<LoadOnPrefab>().PrefabPath = prefabPath;
-                }
+    void Update()
+    {
+        if (last && loadVideo)
+        {
+            
+            //tempObj.AddComponent<MeshFilter>();
+            //tempObj.AddComponent<MeshRenderer>();
+            tempObj.AddComponent<VolumetricCapturePlayer>();
+            tempObj.GetComponent<VolumetricCapturePlayer>().Meshes = meshes;
+            tempObj.GetComponent<VolumetricCapturePlayer>().Textures = textures;
+            tempObj.GetComponent<VolumetricCapturePlayer>().Over = over;
+            loadVideo = false;
+        }
+    }
     
+    async void LoadGltfBinaryFromMemory(string fileUri, byte[] data, bool last)
+    {
+        var gltf = new GltfImport();
+        bool success = await gltf.LoadGltfBinary(
+            data, 
+            // The URI of the original data is important for resolving relative URIs within the glTF
+            new Uri(fileUri)
+        );
+        if (success)
+        {
+            Debug.Log("Video loaded");
+            int meshCount;
+            Mesh[] vcMeshes = gltf.GetMeshes();
+            meshCount = vcMeshes.Length;
+        
+            //Load meshes
+            for (int i = 0; i < meshCount; i++)
+            {
+                meshes.Add(vcMeshes[i]);
+            }
+        
+            //Load textures
+            for (int i = 0; i < gltf.TextureCount; i++)
+            {
+                textures.Add(gltf.GetTexture(i));
+            }
+            over = true;
+        }
+
+        if (last)
+            loadVideo = true;
+
+    }
+
+   
 }
