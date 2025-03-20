@@ -21,6 +21,8 @@ deucalionpapadopoulos@gmail.com
 
 **Roadmap**
 AR and VR Implementation
+Split build and work with AssetBundles
+Fix loop and other settings so that they can be set through the inspector
 
 **Contributing**
 Not accepting contributions
