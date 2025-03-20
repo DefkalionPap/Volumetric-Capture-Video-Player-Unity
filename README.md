@@ -11,9 +11,7 @@ Allows designers, developers, and filmmakers to import glTF volumetric capture v
 
 **Installation**
 1. Install glTFast: com.unity.cloud.gltfast
-2. Download the VolCapImporter.cs script from GitHub
-3. Drag the script inside your project's assets folder
-4. Create an empty game object and add VolCapImporter as a component
+2. Add the Volumetric Capture Video to your scene
 
 **Usage**
 [Insert Usage]
