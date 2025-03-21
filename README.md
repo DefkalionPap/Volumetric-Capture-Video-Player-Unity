@@ -20,6 +20,7 @@ Allows designers, developers, and filmmakers to import glTF volumetric capture v
 deucalionpapadopoulos@gmail.com
 
 **Roadmap**
+Work with tasks
 AR and VR Implementation
 Split build and work with AssetBundles
 Fix loop and other settings so that they can be set through the inspector
