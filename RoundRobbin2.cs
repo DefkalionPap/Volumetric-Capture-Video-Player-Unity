@@ -17,7 +17,9 @@ public class RoundRobbin2 : MonoBehaviour
     [SerializeField] List<Texture> firstTextures;
     [SerializeField] List<Texture> secondTextures;
     bool call = false;
-    private int playList = 1;
+    private int playList = -1;
+
+    private bool loadingOver;
 
     #endregion
     
@@ -57,13 +59,13 @@ public class RoundRobbin2 : MonoBehaviour
         get { return call; }
         set { call = value; }
     }
+    public int Playlist { get { return playList; } set { playList = value; } }
     #endregion
     
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
         gameObject.transform.rotation = Quaternion.Euler(-90, 0, 270);
         gameObject.transform.localScale = gameObject.transform.localScale / 4;
         
@@ -71,20 +73,13 @@ public class RoundRobbin2 : MonoBehaviour
 
         BetterStreamingAssets.Initialize();
         sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
-        //Debug.Log("Video Count is " + sequence.Length);
 
         #endregion
 
-        #region Loads first and second videos' meshes
-
-        for (int i = 0; i < 2; i++)
-        {
-            index = i;
-            fileUri = Application.streamingAssetsPath + "/" + sequence[index];                                            // Absolute path
-            LoadGltfBinaryFromMemory(fileUri, index);
-            //Load gltf first and second frame
-        }
-
+        #region Loads first video's meshes and textures
+        index = 0;
+        fileUri = Application.streamingAssetsPath + "/" + sequence[index];
+        LoadGltfBinaryFromMemory(fileUri, index);
         #endregion
 
     }
@@ -92,55 +87,41 @@ public class RoundRobbin2 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-        if (gameObject.GetComponent<videoPlayer2>().Loaded == false && index > 1 && index < sequence.Length && call == true)
+        if (call && gameObject.GetComponent<videoPlayer2>().Loaded == false)
         { 
-            
+            //playList *= -1;
             if (playList == 1)
             {
-                Debug.Log("Playing list 1");
-                call = false;
+                Debug.Log("Entered Update");
                 gameObject.GetComponent<videoPlayer2>().Meshes = firstMeshes;
                 gameObject.GetComponent<videoPlayer2>().Textures = firstTextures;
-                fileUri = Application.streamingAssetsPath + "/" + sequence[index];                                            // Absolute path
+                gameObject.GetComponent<videoPlayer2>().Loaded = true;
+                index++;
+                fileUri = Application.streamingAssetsPath + "/" + sequence[index];
                 LoadGltfBinaryFromMemory(fileUri, index);
-                
+                call = false;
             }
+
             if (playList == -1)
             {
-                Debug.Log("Playing list 2");
-                call = false;
+                Debug.Log("Entered Update");
                 gameObject.GetComponent<videoPlayer2>().Meshes = secondMeshes;
                 gameObject.GetComponent<videoPlayer2>().Textures = secondTextures;
-                fileUri = Application.streamingAssetsPath + "/" + sequence[index];                                            // Absolute path
+                gameObject.GetComponent<videoPlayer2>().Loaded = true;
+                index++;
+                fileUri = Application.streamingAssetsPath + "/" + sequence[index];
                 LoadGltfBinaryFromMemory(fileUri, index);
+                call = false;
             }
-
-            playList *= -1;
-
+            
         }
-
-        #region Loop
-        if (gameObject.GetComponent<videoPlayer2>().Loaded == false && index == sequence.Length && call == true)              //Loop
-        {
-            for (int i = 0; i < 2; i++) //Loads first and second lists with meshes and textures
-            {
-                index = i;
-                fileUri = Application.streamingAssetsPath + "/" + sequence[index];                                            // Absolute path
-                LoadGltfBinaryFromMemory(fileUri, index);
-                //Load gltf first and second frame
-            }
-        }
-        #endregion
-
     }
 
     async void LoadGltfBinaryFromMemory(string fileUri, int index2)
     {
-        
         #region Loads glTF or GLB file
 
-        data = BetterStreamingAssets.ReadAllBytes(sequence[index]);
+        data = BetterStreamingAssets.ReadAllBytes(sequence[index2]);
         var gltf = new GltfImport();
         bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
 
@@ -148,61 +129,46 @@ public class RoundRobbin2 : MonoBehaviour
         
         if (success)
         {
-            
-            gameObject.GetComponent<videoPlayer2>().Loaded = true;
+            Debug.Log("Loading video: " + index2);
             
             #region Shows if video is loaded and loads meshes
 
-           // Debug.Log("Video loaded " + index);
             int meshCount;
             Mesh[] vcMeshes = gltf.GetMeshes();
             meshCount = vcMeshes.Length;
 
+            List<Texture> textures = new List<Texture>();
             for (int i = 0; i < gltf.TextureCount; i++)
             {
-                List<Texture> textures = new List<Texture>();
                 textures.Add(gltf.GetTexture(i));
             }
             #endregion
             
-            #region Sets first video's meshes and textures
+            #region Sets first and second videos' meshes and textures
 
             if (index2 == 0)
             {
-                firstMeshes.Clear();
-                firstTextures.Clear();
                 for (int i = 0; i < meshCount; i++)
                 {
                     firstMeshes.Add(vcMeshes[i]);
                     firstTextures.Add(gltf.GetTexture(i));
                 }
+                call = true;
             }
-            gameObject.GetComponent<videoPlayer2>().Meshes = firstMeshes;
-            gameObject.GetComponent<videoPlayer2>().Textures = firstTextures;
-            
-            #endregion
-
-            #region Sets second video's meshes and textures
 
             if (index2 == 1)
             {
-                secondMeshes.Clear();
-                secondTextures.Clear();
                 for (int i = 0; i < meshCount; i++)
                 {
                     secondMeshes.Add(vcMeshes[i]);
                     secondTextures.Add(gltf.GetTexture(i));
                 }
-                gameObject.GetComponent<videoPlayer2>().Loaded = true;
-                index++;
-
             }
-            
             #endregion
-          
-            #region Updates first and second lists
+            
+            #region Updates other list
 
-            if (index > 1)
+            if (index2 > 1)
             {
                 if (playList == 1)
                 {
@@ -213,9 +179,9 @@ public class RoundRobbin2 : MonoBehaviour
                         secondMeshes.Add(vcMeshes[i]);
                         secondTextures.Add(gltf.GetTexture(i));
                     }
+                    
                 }
-
-                if (playList == -1)
+                else if (playList == -1)
                 {
                     firstMeshes.Clear();
                     firstTextures.Clear();
@@ -225,14 +191,8 @@ public class RoundRobbin2 : MonoBehaviour
                         firstTextures.Add(gltf.GetTexture(i));
                     }
                 }
-                
-                
-                index++;
-                
             }
-
             #endregion
-            
         }
     }
 }
