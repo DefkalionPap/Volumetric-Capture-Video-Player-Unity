@@ -4,7 +4,7 @@ using UnityEngine;
 public class videoPlayer2 : MonoBehaviour
 {
 
-    #region Original player fields
+    #region Fields
     [SerializeField] int FPS = 30;
     [SerializeField] bool loop = true;
     bool over = true;
@@ -16,24 +16,40 @@ public class videoPlayer2 : MonoBehaviour
     bool loaded = false;
     private MeshFilter meshFilter;
     private Renderer renderer;
+    
     #endregion
-// next is true when the video is played
 
+    #region Properties
     public List<Mesh> Meshes { get { return meshes; } set { meshes = value; } }
     public List<Texture> Textures { get { return textures; } set { textures = value; } }
     public bool Loaded { get { return loaded; } set { loaded = value; } }
+    #endregion
+    
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void Start()
     {
-        //gameObject.GetComponent<MeshRenderer>().material.shader = Shader.Find("Universal Render Pipeline/Unlit");
         
         meshFilter = gameObject.GetComponent<MeshFilter>();
         renderer = gameObject.GetComponent<Renderer>();
+        
     }
 
     public void FixedUpdate() 
     {
+        if (renderedFrames == meshes.Count && loaded)
+        {
+            //Debug.Log("Loaded is: " + loaded);
+            if (gameObject.GetComponent<RoundRobbin2>().FirstMeshes.Count > 0 &&
+                gameObject.GetComponent<RoundRobbin2>().SecondMeshes.Count > 0)
+            {
+                gameObject.GetComponent<RoundRobbin2>().Playlist *= -1;
+                gameObject.GetComponent<RoundRobbin2>().Call = true;
+                loaded = false;
+                renderedFrames = 0;
+            }
+            
+        }
         if (loaded)
         {
             timer += Time.fixedDeltaTime;
@@ -48,15 +64,8 @@ public class videoPlayer2 : MonoBehaviour
                     timer -= frameDuration; // Reset timer and Keep the overflow to carry forward the remainder - AI assisted line
                 }
             }
-            if (renderedFrames == meshes.Count)
-            {
-                renderedFrames = 0;
-                loaded = false;
-                Debug.Log("Loaded is: " + loaded);
-                gameObject.GetComponent<RoundRobbin2>().Call = true;
-            }
         }
-        
     }
+    
 }
 
