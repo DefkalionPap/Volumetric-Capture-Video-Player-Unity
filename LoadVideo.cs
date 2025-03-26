@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -19,7 +20,7 @@ public class LoadVideo : MonoBehaviour
     [SerializeField] List<Mesh> secondMeshes;
     [SerializeField] List<Texture> firstTextures;
     [SerializeField] List<Texture> secondTextures;
-    private int playList = 1;
+    private int playList = -1;
     bool complete = true;
 
     #endregion
