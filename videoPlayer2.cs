@@ -23,34 +23,28 @@ public class videoPlayer2 : MonoBehaviour
     public List<Mesh> Meshes { get { return meshes; } set { meshes = value; } }
     public List<Texture> Textures { get { return textures; } set { textures = value; } }
     public bool Loaded { get { return loaded; } set { loaded = value; } }
+    public bool Loop { get { return loop; } set { loop = value; } }
+    public int RenderedFrames { get { return renderedFrames; } set { renderedFrames = value; } }
+    
     #endregion
     
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void Start()
     {
-        
         meshFilter = gameObject.GetComponent<MeshFilter>();
         renderer = gameObject.GetComponent<Renderer>();
-        
     }
 
     public void FixedUpdate() 
     {
-        if (renderedFrames == meshes.Count && loaded)
+        if (renderedFrames >= meshes.Count && loaded)
         {
-            //Debug.Log("Loaded is: " + loaded);
-            if (gameObject.GetComponent<RoundRobbin2>().FirstMeshes.Count > 0 &&
-                gameObject.GetComponent<RoundRobbin2>().SecondMeshes.Count > 0)
-            {
-                gameObject.GetComponent<RoundRobbin2>().Playlist *= -1;
-                gameObject.GetComponent<RoundRobbin2>().Call = true;
-                loaded = false;
-                renderedFrames = 0;
-            }
-            
+            //gameObject.GetComponent<RoundRobbin4>().Playlist *= -1;
+            loaded = false;
+            //renderedFrames = 0;
         }
-        if (loaded)
+        if (loaded && renderedFrames < meshes.Count)
         {
             timer += Time.fixedDeltaTime;
             frameDuration = 1f / FPS; //AI assisted line
