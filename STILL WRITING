@@ -1,0 +1,75 @@
+// SPDX-FileCopyrightText: 2023 Unity Technologies and the Draco for Unity authors
+// SPDX-License-Identifier: Apache-2.0
+
+using System.IO;
+using Draco.Encode;
+using UnityEngine;
+using UnityEngine.Assertions;
+using System.Collections.Generic;
+using UnityEngine;
+using System.IO;
+using System;
+using GLTFast;
+using System.Threading.Tasks;
+
+namespace Draco.Sample.Encode
+{
+
+    public class EncodeMeshToDraco : MonoBehaviour
+    {
+        async void Start()
+        {
+            /*
+             * var meshFilter = GetComponent<MeshFilter>();
+               Assert.IsNotNull(meshFilter, "Couldn't find MeshFilter component");
+               var mesh = meshFilter.sharedMesh; // Use sharedMesh, so no copy of the Mesh is created implicitly.
+             */
+            BetterStreamingAssets.Initialize();
+            sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
+            Debug.Log(sequence.Length);
+
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                fileUri = Application.streamingAssetsPath + "/" + sequence[i];
+                await LoadGltfBinaryFromMemory(fileUri);
+            }
+        }
+
+        async Task LoadGltfBinaryFromMemory(string fileUri)
+        {
+            #region Loads glTF or GLB file
+
+            data = BetterStreamingAssets.ReadAllBytes(sequence[index]);
+            var gltf = new GltfImport();
+            bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
+
+            #endregion
+
+            if (success)
+            {
+                Debug.Log("Loading video: " + index);
+
+                int meshCount;
+                Mesh[] vcMeshes = gltf.GetMeshes();
+                meshCount = vcMeshes.Length;
+                for (int i = 0; i < meshCount; i++)
+                {
+                    #region EncodeDraco
+                    // Encode to Draco
+                    var encodeResults = await DracoEncoder.EncodeMesh(vcMeshes[i]);
+            
+                    for (var y = 0; i < encodeResults.Length; y++)
+                    {
+                        var encodeResult = encodeResults[y];
+                        var destination = Path.Combine(Application.persistentDataPath, $"{"Mesh"}-submesh-{y}.drc");
+                        File.WriteAllBytes(destination, encodeResult.data.ToArray());
+                        Debug.Log($"Saved submesh {y} to {destination}");
+                        // It's required to dispose the results
+                        encodeResult.Dispose();
+                    }
+                    #endregion EncodeDraco
+                }
+            }
+        }
+    }
+}
