@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -75,7 +74,6 @@ public class LoadVideo : MonoBehaviour
         sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
         Debug.Log(sequence.Length);
         await InitializeLists();
-
     }
 
     // Update is called once per frame
@@ -99,9 +97,14 @@ public class LoadVideo : MonoBehaviour
             complete = true;
         }
 
-        if (index >= sequence.Length)
+        if (index >= sequence.Length && gameObject.GetComponent<videoPlayer2>().Loop == true)
         {
+            firstMeshes.Clear();
+            secondMeshes.Clear();
+            firstTextures.Clear();
+            secondTextures.Clear();
             await InitializeLists();
+            playList = -1;
         }
     }
 
@@ -122,7 +125,6 @@ public class LoadVideo : MonoBehaviour
 
     async Task SendMeshesTextures()
     {
-        
         if (playList == 1)
         {
             Debug.Log("Sending Meshes Textures ");
@@ -133,7 +135,6 @@ public class LoadVideo : MonoBehaviour
                 gameObject.GetComponent<videoPlayer2>().Meshes.Add(firstMeshes[i]);
                 gameObject.GetComponent<videoPlayer2>().Textures.Add(firstTextures[i]);
             }
-             
         }
 
         if (playList == -1)
@@ -145,7 +146,6 @@ public class LoadVideo : MonoBehaviour
             {
                     gameObject.GetComponent<videoPlayer2>().Meshes.Add(secondMeshes[i]);
                     gameObject.GetComponent<videoPlayer2>().Textures.Add(secondTextures[i]);
-                
             }
         }
         
