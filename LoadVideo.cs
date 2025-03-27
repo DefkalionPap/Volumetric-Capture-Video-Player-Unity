@@ -72,8 +72,21 @@ public class LoadVideo : MonoBehaviour
         //gameObject.transform.localScale = videoScale;
         BetterStreamingAssets.Initialize();
         sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
-        Debug.Log(sequence.Length);
-        await InitializeLists();
+        if (sequence.Length == 0)
+        {
+            Debug.LogWarning("No glb files found");
+        }
+            
+        if (sequence.Length == 1)
+        {
+            //await playOneVideo();
+        }
+            
+        if (sequence.Length > 1)
+        {
+            await InitializeLists();
+        }
+            
     }
 
     // Update is called once per frame
@@ -86,7 +99,6 @@ public class LoadVideo : MonoBehaviour
             await SendMeshesTextures();
             gameObject.GetComponent<videoPlayer2>().Loaded = true;
             gameObject.GetComponent<videoPlayer2>().RenderedFrames = 0;
-            Debug.Log("Loaded is: " + gameObject.GetComponent<videoPlayer2>().Loaded);
             
             //Load second video
             fileUri = Application.streamingAssetsPath + "/" + sequence[index];
@@ -127,7 +139,6 @@ public class LoadVideo : MonoBehaviour
     {
         if (playList == 1)
         {
-            Debug.Log("Sending Meshes Textures ");
             gameObject.GetComponent<videoPlayer2>().Meshes.Clear();
             gameObject.GetComponent<videoPlayer2>().Textures.Clear();
             for (int i = 0; i < firstMeshes.Count; i++)
@@ -139,7 +150,6 @@ public class LoadVideo : MonoBehaviour
 
         if (playList == -1)
         {
-            Debug.Log("Sending Meshes Textures -1");
             gameObject.GetComponent<videoPlayer2>().Meshes.Clear();
             gameObject.GetComponent<videoPlayer2>().Textures.Clear();
             for (int i = 0; i < secondMeshes.Count; i++)
