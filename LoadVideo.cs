@@ -8,6 +8,7 @@ public class LoadVideo : MonoBehaviour
 {
     #region Fields
 
+    private int meshCount;
     private int index;
     private byte[] data;
     string[] sequence;
@@ -74,16 +75,17 @@ public class LoadVideo : MonoBehaviour
         sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
         if (sequence.Length == 0)
         {
-            Debug.LogWarning("No glb files found");
+            Debug.Log("No glb files found");
         }
             
         if (sequence.Length == 1)
         {
-            //await playOneVideo();
+            await playSingleVideo();
         }
             
         if (sequence.Length > 1)
         {
+            Debug.Log("Playing multiple gltf files");
             await InitializeLists();
         }
             
@@ -92,34 +94,59 @@ public class LoadVideo : MonoBehaviour
     // Update is called once per frame
     async void Update()
     {
-        if (index >= 2 && index < sequence.Length && gameObject.GetComponent<videoPlayer2>().Loaded == false && complete == true)
+        if (sequence.Length > 1) // Checks if there is more than one video to play
         {
-            complete = false;
-            //Play first video
-            await SendMeshesTextures();
-            gameObject.GetComponent<videoPlayer2>().Loaded = true;
-            gameObject.GetComponent<videoPlayer2>().RenderedFrames = 0;
+            if (index >= 2 && index < sequence.Length && gameObject.GetComponent<videoPlayer2>().Loaded == false && complete == true)
+            {
+                complete = false;
+                //Play first video
+                await SendMeshesTextures();
+                gameObject.GetComponent<videoPlayer2>().Loaded = true;
+                gameObject.GetComponent<videoPlayer2>().RenderedFrames = 0;
             
-            //Load second video
-            fileUri = Application.streamingAssetsPath + "/" + sequence[index];
-            await LoadGltfBinaryFromMemory(fileUri);
-            index++;
+                //Load second video
+                fileUri = Application.streamingAssetsPath + "/" + sequence[index];
+                await LoadGltfBinaryFromMemory(fileUri);
+                index++;
 
-            playList *= -1;
-            complete = true;
+                playList *= -1;
+                complete = true;
+            }
+
+            if (index >= sequence.Length && gameObject.GetComponent<videoPlayer2>().Loop == true)
+            {
+               Loop();
+            }
         }
 
-        if (index >= sequence.Length && gameObject.GetComponent<videoPlayer2>().Loop == true)
+        if (sequence.Length == 1 && gameObject.GetComponent<videoPlayer2>().Loop)
         {
-            firstMeshes.Clear();
-            secondMeshes.Clear();
-            firstTextures.Clear();
-            secondTextures.Clear();
-            await InitializeLists();
-            playList = -1;
+            if (gameObject.GetComponent<videoPlayer2>().Loaded == false)
+            {
+                gameObject.GetComponent<videoPlayer2>().RenderedFrames = 0;
+                gameObject.GetComponent<videoPlayer2>().Loaded = true;
+            }
         }
     }
 
+    async Task playSingleVideo()
+    {
+        Debug.Log("Playing single glb file");
+        string fileUri = Application.streamingAssetsPath + "/" + sequence[index];
+        await LoadGltfBinaryFromMemory(fileUri);
+        for (int i = 0; i < meshCount; i++)
+        {
+            gameObject.GetComponent<videoPlayer2>().Meshes.Add(firstMeshes[i]);
+            gameObject.GetComponent<videoPlayer2>().Textures.Add(firstTextures[i]);
+        }
+        gameObject.GetComponent<videoPlayer2>().Loaded = true;
+    }
+    async Task Loop()
+    {
+        Debug.Log("Loop will start soon");
+        index = 0;
+        
+    }
     async Task InitializeLists()
     {
         index = 0;
@@ -176,7 +203,6 @@ public class LoadVideo : MonoBehaviour
             Debug.Log("Loading video: " + index);
             #region Shows if video is loaded and loads meshes and textures
 
-            int meshCount;
             Mesh[] vcMeshes = gltf.GetMeshes();
             meshCount = vcMeshes.Length;
 
@@ -197,12 +223,7 @@ public class LoadVideo : MonoBehaviour
                     firstMeshes.Add(vcMeshes[i]);
                     firstTextures.Add(gltf.GetTexture(i));
                 }
-
-                for (int i = 0; i < meshCount; i++)
-                {
-                    gameObject.GetComponent<videoPlayer2>().Meshes.Add(firstMeshes[i]);
-                    gameObject.GetComponent<videoPlayer2>().Textures.Add(firstTextures[i]);
-                }
+                //index++;
             }
 
             if (index == 1)
@@ -212,6 +233,8 @@ public class LoadVideo : MonoBehaviour
                     secondMeshes.Add(vcMeshes[i]);
                     secondTextures.Add(gltf.GetTexture(i));
                 }
+
+                index++;
             }
 
             #endregion
@@ -238,6 +261,10 @@ public class LoadVideo : MonoBehaviour
                     firstTextures.Add(gltf.GetTexture(i));
                 }
             }
+        }
+        else
+        {
+            Debug.Log("Could not load gltf file");
         }
     }
 }
