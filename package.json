@@ -1,0 +1,24 @@
+{
+  "name": "com.certh.volumetric_capture_player",
+  "version": "1.0.0",
+  "displayName": "Volumetric Capture Player",
+  "description": "Volumetric Capture Video Player for Unity",
+  "unity": "6000.0",
+  "unityRelease": "38f1",
+  "documentationUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/tree/Custom-Package",
+  "changelogUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/CHANGELOG.md",
+  "licensesUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/LICENSE.md",
+  "dependencies": {
+    "com.gwiazdorrr.betterstreamingassets": "1.7.1",
+    "com.unity.cloud.gltfast": "6.10.3"
+ },
+ "keywords": [
+    "Better Streaming Assets",
+    "glTFast"
+  ],
+  "author": {
+    "name": "Visual Computing Lab - The Center for Research & Technology, Hellas",
+    "email": "daras@iti.gr",
+    "url": "https://vcl.iti.gr/"
+  }
+}
