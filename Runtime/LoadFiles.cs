@@ -4,6 +4,8 @@ using System.IO;
 using System;
 using GLTFast;
 using System.Threading.Tasks;
+using Unity.Collections.LowLevel.Unsafe;
+
 public class LoadFiles : MonoBehaviour
 {
     #region Fields
@@ -24,6 +26,7 @@ public class LoadFiles : MonoBehaviour
     bool complete = true;
 
     #endregion
+    bool listsInitialized = false;
     
     #region Properties
 
@@ -72,7 +75,7 @@ public class LoadFiles : MonoBehaviour
         gameObject.transform.localScale = gameObject.transform.localScale / 4;
         //gameObject.transform.localScale = videoScale;
         BetterStreamingAssets.Initialize();
-        sequence = BetterStreamingAssets.GetFiles("/", "*.glb", SearchOption.AllDirectories);
+        sequence = BetterStreamingAssets.GetFiles("/", "*.glb" , SearchOption.AllDirectories);
         if (sequence.Length == 0)
         {
             Debug.Log("No glb files found");
@@ -80,13 +83,15 @@ public class LoadFiles : MonoBehaviour
             
         if (sequence.Length == 1)
         {
-            await playSingleVideo();
+            Debug.Log("Playing single glb file");
+            await LoadSingleVideo();
         }
             
         if (sequence.Length > 1)
         {
             Debug.Log("Playing multiple gltf files");
             await InitializeLists();
+            listsInitialized = true;
         }
             
     }
@@ -94,13 +99,10 @@ public class LoadFiles : MonoBehaviour
     // Update is called once per frame
     async void Update()
     {
-        if (sequence.Length > 1) // Checks if there is more than one video to play
+       
+        if (sequence.Length > 1) // Checks if there is more than one video to play                                        Loop doesn't work for single video
         {
-            if (index > sequence.Length)
-            {
-                Debug.Log("Going over list size!");
-            }
-            if (index >= 2 && index <= sequence.Length && gameObject.GetComponent<VideoPlayer>().Loaded == false && complete == true)
+            if (listsInitialized && index <= sequence.Length - 1 && gameObject.GetComponent<VideoPlayer>().Loaded == false && complete == true)
             {
                 complete = false;
                 //Play first video
@@ -115,32 +117,27 @@ public class LoadFiles : MonoBehaviour
                     await LoadGltfBinaryFromMemory(fileUri);
                     index++; 
                 }
+                else if (index == sequence.Length - 1)
+                {
+                    Debug.Log("Loop starting");
+                    index = 0;
+                    fileUri = Application.streamingAssetsPath + "/" + sequence[index];
+                    await LoadGltfBinaryFromMemory(fileUri);
+                    index++; 
+                }
                 
-
                 playList *= -1;
                 complete = true;
                 Debug.Log(index);
             }
-
-            if (index > sequence.Length && gameObject.GetComponent<VideoPlayer>().Loop == true)
-            {
-               Loop();
-            }
+            
         }
-
-        if (sequence.Length == 1 && gameObject.GetComponent<VideoPlayer>().Loop)
-        {
-            if (gameObject.GetComponent<VideoPlayer>().Loaded == false)
-            {
-                gameObject.GetComponent<VideoPlayer>().RenderedFrames = 0;
-                gameObject.GetComponent<VideoPlayer>().Loaded = true;
-            }
-        }
+        
     }
 
-    async Task playSingleVideo()
+    async Task LoadSingleVideo()
     {
-        Debug.Log("Playing single glb file");
+        
         string fileUri = Application.streamingAssetsPath + "/" + sequence[index];
         await LoadGltfBinaryFromMemory(fileUri);
         for (int i = 0; i < meshCount; i++)
@@ -150,21 +147,18 @@ public class LoadFiles : MonoBehaviour
         }
         gameObject.GetComponent<VideoPlayer>().Loaded = true;
     }
-    async Task Loop()
-    {
-        Debug.Log("Loop will start soon");
-        index = 0;
-        
-    }
+
     async Task InitializeLists()
     {
         index = 0;
         fileUri = Application.streamingAssetsPath + "/" + sequence[index];
         await LoadGltfBinaryFromMemory(fileUri);
 
+        playList *= -1;
         index = 1;
         fileUri = Application.streamingAssetsPath + "/" + sequence[index];
         await LoadGltfBinaryFromMemory(fileUri);
+        playList *= -1;
         
         gameObject.GetComponent<VideoPlayer>().Loaded = true;
 
@@ -199,81 +193,61 @@ public class LoadFiles : MonoBehaviour
 
     async Task LoadGltfBinaryFromMemory(string fileUri)
     {
-        #region Loads glTF or GLB file
-
-        data = BetterStreamingAssets.ReadAllBytes(sequence[index]);
-        var gltf = new GltfImport();
-        bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
-
-        #endregion
-
-        if (success)
+        if (index < sequence.Length)
         {
-            Debug.Log("Loading video: " + index);
-            #region Shows if video is loaded and loads meshes and textures
+            #region Loads glTF or GLB file
 
-            Mesh[] vcMeshes = gltf.GetMeshes();
-            meshCount = vcMeshes.Length;
-
-            List<Texture> textures = new List<Texture>();
-            for (int i = 0; i < gltf.TextureCount; i++)
-            {
-                textures.Add(gltf.GetTexture(i));
-            }
+            data = BetterStreamingAssets.ReadAllBytes(sequence[index]);
+            var gltf = new GltfImport();
+            bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
 
             #endregion
 
-            #region Set first and second videos
-
-            if (index == 0)
+            if (success)
             {
-                for (int i = 0; i < meshCount; i++)
-                {
-                    firstMeshes.Add(vcMeshes[i]);
-                    firstTextures.Add(gltf.GetTexture(i));
-                }
-                //index++;
-            }
+                #region Shows if video is loaded and loads meshes and textures
 
-            if (index == 1)
-            {
-                for (int i = 0; i < meshCount; i++)
+                Mesh[] vcMeshes = gltf.GetMeshes();
+                meshCount = vcMeshes.Length;
+
+                List<Texture> textures = new List<Texture>();
+                for (int i = 0; i < gltf.TextureCount; i++)
                 {
-                    secondMeshes.Add(vcMeshes[i]);
-                    secondTextures.Add(gltf.GetTexture(i));
+                    textures.Add(gltf.GetTexture(i));
                 }
 
-                index++;
-            }
-
-            #endregion
+                #endregion
             
+                if (playList == -1)
+                {
+                    firstMeshes.Clear();
+                    firstTextures.Clear();
+                    for (int i = 0; i < meshCount; i++)
+                    {
+                        firstMeshes.Add(vcMeshes[i]);
+                        firstTextures.Add(gltf.GetTexture(i));
+                    }
+                }
             
-            if (index >= 2 && playList == 1)
-            {
-                secondMeshes.Clear();
-                secondTextures.Clear();
-                for (int i = 0; i < meshCount; i++)
+                if (playList == 1)
                 {
-                    secondMeshes.Add(vcMeshes[i]);
-                    secondTextures.Add(gltf.GetTexture(i));
+                    secondMeshes.Clear();
+                    secondTextures.Clear();
+                    for (int i = 0; i < meshCount; i++)
+                    {
+                        secondMeshes.Add(vcMeshes[i]);
+                        secondTextures.Add(gltf.GetTexture(i));
+                    }
                 }
+                
+                
+            
             }
-
-            if (index >= 2 && playList == -1)
+            else
             {
-                firstMeshes.Clear();
-                firstTextures.Clear();
-                for (int i = 0; i < meshCount; i++)
-                {
-                    firstMeshes.Add(vcMeshes[i]);
-                    firstTextures.Add(gltf.GetTexture(i));
-                }
+                Debug.Log("Could not load gltf file");
             }
         }
-        else
-        {
-            Debug.Log("Could not load gltf file");
-        }
+        
     }
 }
