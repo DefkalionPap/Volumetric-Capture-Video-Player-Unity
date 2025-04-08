@@ -27,6 +27,7 @@ public class LoadFiles : MonoBehaviour
 
     #endregion
     bool listsInitialized = false;
+    List<GltfImport> gltfImports = new List<GltfImport>();
     
     #region Properties
 
@@ -98,9 +99,27 @@ public class LoadFiles : MonoBehaviour
 
     // Update is called once per frame
     async void Update()
+
+    #region MyRegion
+    /*
+     * if (index >= sequence.Length && gameObject.GetComponent<VideoPlayer>().Loop == false)
+       {
+
+       }
+
+       if (sequence.Length == 1 && gameObject.GetComponent<VideoPlayer>().Loop && gameObject.GetComponent<VideoPlayer>().Loaded == false)
+       {
+           gameObject.GetComponent<VideoPlayer>().RenderedFrames = 0;
+           gameObject.GetComponent<VideoPlayer>().Loaded = true;
+
+
+       }
+     */
+        #endregion
+    
     {
-       
-        if (sequence.Length > 1) // Checks if there is more than one video to play                                        Loop doesn't work for single video
+        
+        if (sequence.Length > 1)                            
         {
             if (listsInitialized && index <= sequence.Length - 1 && gameObject.GetComponent<VideoPlayer>().Loaded == false && complete == true)
             {
@@ -217,7 +236,7 @@ public class LoadFiles : MonoBehaviour
                 }
 
                 #endregion
-            
+
                 if (playList == -1)
                 {
                     firstMeshes.Clear();
@@ -228,7 +247,7 @@ public class LoadFiles : MonoBehaviour
                         firstTextures.Add(gltf.GetTexture(i));
                     }
                 }
-            
+
                 if (playList == 1)
                 {
                     secondMeshes.Clear();
@@ -239,9 +258,32 @@ public class LoadFiles : MonoBehaviour
                         secondTextures.Add(gltf.GetTexture(i));
                     }
                 }
+
+                if (index >= 2)
+                {
+                    gltfImports[index - 2].Dispose();
+                    gltfImports[index - 1].Dispose();
+                }
                 
+                if (gameObject.GetComponent<VideoPlayer>().Loop)
+                {
+                    if (index == 0 && listsInitialized)
+                    {
+                        gltfImports[sequence.Length - 2].Dispose();
+                    }
+                    else if (index == 1 && listsInitialized)
+                    {
+                        gltfImports[0].Dispose();
+                    }
+                    
+                }
                 
-            
+
+                textures.Clear();
+                Array.Clear(vcMeshes, 0, vcMeshes.Length);
+
+                gltfImports.Add(gltf);
+                
             }
             else
             {
