@@ -259,26 +259,29 @@ public class LoadFiles : MonoBehaviour
                     }
                 }
 
+                #region Garbage Collection
+
                 if (index >= 2)
                 {
-                    gltfImports[index - 2].Dispose();
                     gltfImports[index - 1].Dispose();
+                    gltfImports[index - 2].Dispose();
                 }
-                
-                if (gameObject.GetComponent<VideoPlayer>().Loop)
-                {
-                    if (index == 0 && listsInitialized)
-                    {
-                        gltfImports[sequence.Length - 2].Dispose();
-                    }
-                    else if (index == 1 && listsInitialized)
-                    {
-                        gltfImports[0].Dispose();
-                    }
-                    
-                }
-                
 
+                if (index == 0 && listsInitialized)
+                {
+                    gltfImports[sequence.Length - 2].Dispose();
+                }
+
+                if (index == 1 && listsInitialized)
+                {
+                    gltfImports[sequence.Length - 1].Dispose();
+                }
+
+                #endregion
+               
+                
+                Resources.UnloadUnusedAssets();
+                
                 textures.Clear();
                 Array.Clear(vcMeshes, 0, vcMeshes.Length);
 
