@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System;
+using System.Linq;
 using GLTFast;
 using System.Threading.Tasks;
 using Unity.Collections.LowLevel.Unsafe;
@@ -15,9 +16,6 @@ public class LoadFiles : MonoBehaviour
     private byte[] data;
     string[] sequence;
     private string fileUri;
-    [SerializeField] private Vector3 videoPosition = new Vector3(0, 0, 0);
-    [SerializeField] private Quaternion videoRotation = Quaternion.Euler(270, 0, 0);
-   // [SerializeField] private Vector3 videoScale;
     [SerializeField]private List<Mesh> firstMeshes;
     [SerializeField] List<Mesh> secondMeshes;
     [SerializeField] List<Texture> firstTextures;
@@ -29,6 +27,7 @@ public class LoadFiles : MonoBehaviour
     bool listsInitialized = false;
     List<GltfImport> gltfImports = new List<GltfImport>();
     
+
     #region Properties
 
     public int Index
@@ -71,10 +70,6 @@ public class LoadFiles : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     async void Start()
     {
-        gameObject.transform.position = videoPosition;
-        gameObject.transform.rotation = videoRotation;
-        gameObject.transform.localScale = gameObject.transform.localScale / 4;
-        //gameObject.transform.localScale = videoScale;
         BetterStreamingAssets.Initialize();
         sequence = BetterStreamingAssets.GetFiles("/", "*.glb" , SearchOption.AllDirectories);
         if (sequence.Length == 0)
@@ -118,25 +113,28 @@ public class LoadFiles : MonoBehaviour
         #endregion
     
     {
-        
+        if (index == sequence.Length  && !gameObject.GetComponent<VideoPlayer>().Loop)
+        {
+           gameObject.GetComponent<VideoPlayer>().Loaded = true;
+        }
         if (sequence.Length > 1)                            
         {
-            if (listsInitialized && index <= sequence.Length - 1 && gameObject.GetComponent<VideoPlayer>().Loaded == false && complete == true)
+            if (listsInitialized && index <= sequence.Length - 1 && 
+                gameObject.GetComponent<VideoPlayer>().Loaded == false && complete == true)
             {
+                Debug.Log("Files" + gltfImports.Count);
                 complete = false;
-                //Play first video
+               
                 await SendMeshesTextures();
                 gameObject.GetComponent<VideoPlayer>().Loaded = true;
                 gameObject.GetComponent<VideoPlayer>().RenderedFrames = 0;
-            
-                //Load second video
                 if (index < sequence.Length - 1)
                 {
                     fileUri = Application.streamingAssetsPath + "/" + sequence[index];
                     await LoadGltfBinaryFromMemory(fileUri);
                     index++; 
                 }
-                else if (index == sequence.Length - 1)
+                else if (index == sequence.Length - 1 && gameObject.GetComponent<VideoPlayer>().Loop)
                 {
                     Debug.Log("Loop starting");
                     index = 0;
@@ -225,15 +223,10 @@ public class LoadFiles : MonoBehaviour
             if (success)
             {
                 #region Shows if video is loaded and loads meshes and textures
+                
+                
+                meshCount = gltf.GetMeshes().Length;
 
-                Mesh[] vcMeshes = gltf.GetMeshes();
-                meshCount = vcMeshes.Length;
-
-                List<Texture> textures = new List<Texture>();
-                for (int i = 0; i < gltf.TextureCount; i++)
-                {
-                    textures.Add(gltf.GetTexture(i));
-                }
 
                 #endregion
 
@@ -243,7 +236,7 @@ public class LoadFiles : MonoBehaviour
                     firstTextures.Clear();
                     for (int i = 0; i < meshCount; i++)
                     {
-                        firstMeshes.Add(vcMeshes[i]);
+                        firstMeshes.Add(gltf.GetMesh(i, 0));                                                 // What is meshNumeration?
                         firstTextures.Add(gltf.GetTexture(i));
                     }
                 }
@@ -254,39 +247,27 @@ public class LoadFiles : MonoBehaviour
                     secondTextures.Clear();
                     for (int i = 0; i < meshCount; i++)
                     {
-                        secondMeshes.Add(vcMeshes[i]);
+                        secondMeshes.Add(gltf.GetMesh(i, 0));
                         secondTextures.Add(gltf.GetTexture(i));
                     }
                 }
 
                 #region Garbage Collection
 
-                if (index >= 2)
+                gltfImports.Add(gltf);
+                data = null;
+                
+                if (gltfImports.Count >= 2)
                 {
-                    gltfImports[index - 1].Dispose();
-                    gltfImports[index - 2].Dispose();
+                    gltfImports[gltfImports.Count - 2].Dispose();
+                    gltfImports.RemoveAt(gltfImports.Count - 2);
                 }
-
-                if (index == 0 && listsInitialized)
-                {
-                    gltfImports[sequence.Length - 2].Dispose();
-                }
-
-                if (index == 1 && listsInitialized)
-                {
-                    gltfImports[sequence.Length - 1].Dispose();
-                }
+                
 
                 #endregion
-               
                 
-                Resources.UnloadUnusedAssets();
                 
-                textures.Clear();
-                Array.Clear(vcMeshes, 0, vcMeshes.Length);
 
-                gltfImports.Add(gltf);
-                
             }
             else
             {
