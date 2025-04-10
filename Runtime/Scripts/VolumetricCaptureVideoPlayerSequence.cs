@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System.Linq;
 using GLTFast;
 
 public class VolumetricCaptureVideoPlayerSequence : MonoBehaviour
@@ -16,7 +15,7 @@ public class VolumetricCaptureVideoPlayerSequence : MonoBehaviour
     List<Texture> textures = new List<Texture>();
     [SerializeField] private string folderName;
     [SerializeField] private Vector3 videoPosition = new Vector3(0, 0, 0);
-    [SerializeField] Quaternion videoRotation = Quaternion.Euler(270, 0, 0);
+    [SerializeField] Quaternion videoRotation = Quaternion.Euler(0, 0, 0);
     [SerializeField] Vector3 videoScale = new Vector3(1, 1, 1);
     [SerializeField] int FPS = 30;
     [SerializeField] bool loop = true;
@@ -36,12 +35,24 @@ public class VolumetricCaptureVideoPlayerSequence : MonoBehaviour
     
     #endregion
     
+    private void Awake()
+    {
+        if (gameObject.GetComponent<MeshFilter>() == null)
+        {
+            gameObject.AddComponent<MeshFilter>();
+        }
+
+        if (gameObject.GetComponent<Renderer>() == null)
+        {
+            gameObject.AddComponent<MeshRenderer>();
+        }
+    }
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     async void Start()
     {
         meshFilter = gameObject.GetComponent<MeshFilter>();
         renderer = gameObject.GetComponent<Renderer>();
+        renderer.material.shader = Shader.Find("glTF/Unlit");
         BetterStreamingAssets.Initialize();
         string[] sequence = BetterStreamingAssets.GetFiles("/" + folderName + "/", "*" , SearchOption.AllDirectories);
         if (sequence.Length == 0)
