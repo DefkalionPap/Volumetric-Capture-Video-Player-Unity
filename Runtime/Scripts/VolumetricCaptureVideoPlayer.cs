@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using System.Linq;
 using GLTFast;
+
 
 public class VolumetricCaptureVideoPlayer : MonoBehaviour
 {
@@ -38,11 +38,25 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
     #endregion
     
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private void Awake()
+    {
+        if (gameObject.GetComponent<MeshFilter>() == null)
+        {
+            gameObject.AddComponent<MeshFilter>();
+        }
+
+        if (gameObject.GetComponent<Renderer>() == null)
+        {
+            gameObject.AddComponent<MeshRenderer>();
+        }
+    }
+
     async void Start()
     {
         meshFilter = gameObject.GetComponent<MeshFilter>();
         renderer = gameObject.GetComponent<Renderer>();
+        renderer.material.shader = Shader.Find("glTF/Unlit");
+        
         BetterStreamingAssets.Initialize();
         if (BetterStreamingAssets.GetFiles("/", fileName + "*", SearchOption.AllDirectories).Length == 0)
         {
@@ -139,4 +153,3 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
             }
     }
 }
-
