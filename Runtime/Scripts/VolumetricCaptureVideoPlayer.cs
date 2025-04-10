@@ -17,7 +17,7 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
     List<Texture> textures = new List<Texture>();
     [SerializeField] private string fileName;
     [SerializeField] private Vector3 videoPosition = new Vector3(0, 0, 0);
-    [SerializeField] Quaternion videoRotation = Quaternion.Euler(270, 0, 0);
+    [SerializeField] Quaternion videoRotation = Quaternion.Euler(0, 0, 0);
     [SerializeField] Vector3 videoScale = new Vector3(1, 1, 1);
     [SerializeField] int FPS = 30;
     [SerializeField] bool loop = true;
