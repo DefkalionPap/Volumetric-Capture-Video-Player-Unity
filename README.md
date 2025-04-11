@@ -1,43 +1,31 @@
-# Volumetric Capture Video Importer Unity
+# Volumetric Capture Video Player Unity
 
-**Description**
-Allows designers, developers, and filmmakers to import glTF volumetric capture videos in their projects
+**Description** <br>
+Allows designers, developers, and filmmakers to play glTF volumetric capture videos in their Unity projects
 
-**Badges**
-[Insert Badges]
+**Installation** <br>
+1. Install glTFast and BetterStreamingAssets (Recommended)
+2. Install the Volumetric Capture Video Player package
 
-**Visuals**
-[Insert Visuals]
-
-**Installation**
-1. Install glTFast: com.unity.cloud.gltfast
-2. Add the Volumetric Capture Video to your scene
-
-**Usage**
-[Insert Usage]
-
-**Support**
+**Support** <br>
 deucalionpapadopoulos@gmail.com
 
-**Roadmap**
-AR and VR Implementation
-Split build and work with AssetBundles
+**Roadmap** <br>
+Add URL Support <br>
+Add advanced features (change playback speed, pause, reverse etc.)
 
-**Contributing**
-Not accepting contributions
+**Contributing** <br>
+Accepting contributions
 
-**Authors and acknowledgment**
-Dimitrios Zarpalas, [Insert Title]
-Dimitrios Pattas, [Insert Title]
-Antonios Karakottas, [Insert Title]
-.
-.
-.
-Defkalion Nikolaos Papadopoulos, Intern
+**Authors and acknowledgment** <br>
+Dimitrios Zarpalas, Senior Researcher <br>
+Dimitrios Pattas, Research Associate <br>
+Antonios Karakottas, PhD Candidate <br>
+Defkalion Nikolaos Papadopoulos, Intern <br>
 The Center for Research & Technology, Hellas
 
-**License**
-[Insert License]
+**License** <br>
+MIT License
 
-**Project status**
-Under development
+**Project status** <br>
+Released
