@@ -8,10 +8,10 @@
   "changelogUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/CHANGELOG.md",
   "licensesUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/LICENSE.md",
   "dependencies": {
-    "com.gwiazdorrr.betterstreamingassets": "1.7.1",
-    "com.unity.cloud.gltfast": "6.10.3"
- },
- "keywords": [
+    "com.unity.cloud.gltfast": "6.10.3",
+    "com.unity.cloud.draco": "5.1.8"
+  },
+  "keywords": [
     "Better Streaming Assets",
     "glTFast"
   ],
