@@ -140,7 +140,7 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
                     int meshCount = gltf.GetMeshes().Length;
                     for (int i = 0; i < meshCount; i++)
                     {
-                        Meshes.Add(gltf.GetMesh(i, 0));                                                    // What is meshNumeration?
+                        Meshes.Add(gltf.GetMesh(i, 0));                                                    
                         Textures.Add(gltf.GetTexture(i));
                     }
                     Loaded = true;
