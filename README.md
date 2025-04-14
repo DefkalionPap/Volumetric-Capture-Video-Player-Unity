@@ -4,7 +4,7 @@
 Allows designers, developers, and filmmakers to play glTF volumetric capture videos in their Unity projects
 
 **Installation** <br>
-1. Install glTFast and BetterStreamingAssets (Recommended)
+1. Install Unity 6.0 or above
 2. Install the Volumetric Capture Video Player package
 
 **Support** <br>
