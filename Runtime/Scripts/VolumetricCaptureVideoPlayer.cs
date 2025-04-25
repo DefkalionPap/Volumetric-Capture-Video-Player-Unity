@@ -16,16 +16,11 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
     List<Mesh> meshes = new List<Mesh>();
     List<Texture> textures = new List<Texture>();
     [SerializeField] private string fileName;
-    [SerializeField] private Vector3 videoPosition = new Vector3(0, 0, 0);
-    [SerializeField] Quaternion videoRotation = Quaternion.Euler(0, 0, 0);
-    [SerializeField] Vector3 videoScale = new Vector3(1, 1, 1);
     [SerializeField] int FPS = 30;
     [SerializeField] bool loop = true;
     bool loaded = false;
     private MeshFilter meshFilter;
     private Renderer renderer;
-
-    
     #endregion
 
     #region Properties
@@ -34,7 +29,6 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
     public bool Loaded { get { return loaded; } set { loaded = value; } }
     public bool Loop { get { return loop; } set { loop = value; } }
     public int RenderedFrames { get { return renderedFrames; } set { renderedFrames = value; } }
-    
     #endregion
     
     
@@ -76,77 +70,64 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
 
     public void FixedUpdate() 
     {
-        #region Set Transform
-
-        gameObject.transform.position = videoPosition;
-        gameObject.transform.rotation = videoRotation;
-        gameObject.transform.localScale = videoScale;
-
-        #endregion
-
         #region Loop
-
         if (renderedFrames == Meshes.Count - 1 && Loop && loaded == false)
         {
             renderedFrames = 0;
             loaded = true;
         }
+        
         else if (renderedFrames == Meshes.Count - 1 && Loop == false)
         {
             loaded = false;
         }
-
         #endregion
 
         #region Play Video
-
         if (renderedFrames >= meshes.Count - 1 && loaded)
         {
             loaded = false;
         }
+        
         if (loaded && renderedFrames < meshes.Count)
         {
             timer += Time.fixedDeltaTime;
-            frameDuration = 1f / FPS; //AI assisted line
+            frameDuration = 1f / FPS;
             if (timer >= frameDuration)
             {
-                if (renderedFrames < meshes.Count) //AI assisted line
+                if (renderedFrames < meshes.Count)
                 {
                     meshFilter.mesh = meshes[renderedFrames];
                     renderer.material.mainTexture = textures[renderedFrames];
                     renderedFrames++;
-                    timer -= frameDuration; // Reset timer and Keep the overflow to carry forward the remainder - AI assisted line
+                    timer -= frameDuration;
                 }
             }
         }
-
         #endregion
     }
     
     async Task LoadGltfBinaryFromMemory(string fileUri, string filePath)
     {
         #region Loads glTF or GLB file
-
-            byte[] data = BetterStreamingAssets.ReadAllBytes(filePath);
-            var gltf = new GltfImport();
-            bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
-
+        byte[] data = BetterStreamingAssets.ReadAllBytes(filePath);
+        var gltf = new GltfImport();
+        bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
         #endregion
 
             if (success)
             {
                 #region Shows if video is loaded and loads meshes and textures
-                
-                    int meshCount = gltf.GetMeshes().Length;
-                    for (int i = 0; i < meshCount; i++)
-                    {
-                        Meshes.Add(gltf.GetMesh(i, 0));                                                    
-                        Textures.Add(gltf.GetTexture(i));
-                    }
-                    Loaded = true;
-                    
+                int meshCount = gltf.GetMeshes().Length;
+                for (int i = 0; i < meshCount; i++)
+                {
+                    Meshes.Add(gltf.GetMesh(i, 0));                                                    
+                    Textures.Add(gltf.GetTexture(i));
+                }
+                Loaded = true;
                 #endregion
             }
+            
             else
             {
                 Debug.Log("Could not load gltf file");
