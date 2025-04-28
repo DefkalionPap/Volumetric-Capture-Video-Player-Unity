@@ -4,20 +4,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using GLTFast;
-
-
 public class VolumetricCaptureVideoPlayer : MonoBehaviour
 {
-
     #region Fields
     int renderedFrames = 0;
     private float timer = 0;
     float frameDuration;
     List<Mesh> meshes = new List<Mesh>();
     List<Texture> textures = new List<Texture>();
-    [SerializeField] private string fileName;
+    [SerializeField] private List<String> fileName = new List<String>();
     [SerializeField] int FPS = 30;
     [SerializeField] bool loop = true;
+    int meshCount = 0;
     bool loaded = false;
     private MeshFilter meshFilter;
     private Renderer renderer;
@@ -31,7 +29,6 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
     public int RenderedFrames { get { return renderedFrames; } set { renderedFrames = value; } }
     #endregion
     
-    
     private void Awake()
     {
         if (gameObject.GetComponent<MeshFilter>() == null)
@@ -44,45 +41,49 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
             gameObject.AddComponent<MeshRenderer>();
         }
     }
-
     async void Start()
     {
         meshFilter = gameObject.GetComponent<MeshFilter>();
         renderer = gameObject.GetComponent<Renderer>();
         renderer.material.shader = Shader.Find("glTF/Unlit");
-        
-        BetterStreamingAssets.Initialize();
-        if (BetterStreamingAssets.GetFiles("/", fileName + "*", SearchOption.AllDirectories).Length == 0)
+
+        if (fileName.Count == 0)
         {
-            Debug.Log("File not found");
+            Debug.Log("No file names provided. Add file names and try again.");
         }
+        
         else
         {
-            string filePath = BetterStreamingAssets.GetFiles("/", fileName + "*" , SearchOption.AllDirectories)[0];
-            if (filePath.EndsWith(".glb") || filePath.EndsWith(".gltf"))
+            BetterStreamingAssets.Initialize();
+            for (int i = 0; i < fileName.Count; i++)
             {
-                string fileUri = Application.streamingAssetsPath + "/" + filePath;
-                await LoadGltfBinaryFromMemory(fileUri, filePath);
-                Loaded = true;
+                if (BetterStreamingAssets.GetFiles("/", fileName[i] + "*", SearchOption.AllDirectories).Length == 0)
+                {
+                    Debug.Log("File not found: " + fileName[i]);
+                }
+                else
+                {
+                    string filePath = BetterStreamingAssets.GetFiles("/", fileName[i] + "*" , SearchOption.AllDirectories)[0];
+                    if (filePath.EndsWith(".glb") || filePath.EndsWith(".gltf"))
+                    {
+                        string fileUri = Application.streamingAssetsPath + "/" + filePath;
+                        await LoadGltfBinaryFromMemory(fileUri, filePath);
+                    }
+                }
             }
+            loaded = true;
         }
     }
-
     public void FixedUpdate() 
     {
         #region Loop
-        if (renderedFrames == Meshes.Count - 1 && Loop && loaded == false)
+        if (renderedFrames == Meshes.Count - 1 && loop)
         {
             renderedFrames = 0;
             loaded = true;
         }
         
-        else if (renderedFrames == Meshes.Count - 1 && Loop == false)
-        {
-            loaded = false;
-        }
         #endregion
-
         #region Play Video
         if (renderedFrames >= meshes.Count - 1 && loaded)
         {
@@ -106,25 +107,25 @@ public class VolumetricCaptureVideoPlayer : MonoBehaviour
         }
         #endregion
     }
-    
     async Task LoadGltfBinaryFromMemory(string fileUri, string filePath)
     {
         #region Loads glTF or GLB file
         byte[] data = BetterStreamingAssets.ReadAllBytes(filePath);
         var gltf = new GltfImport();
+        Debug.Log("Loading video...");
         bool success = await gltf.LoadGltfBinary(data, new Uri(fileUri));
         #endregion
 
             if (success)
             {
                 #region Shows if video is loaded and loads meshes and textures
-                int meshCount = gltf.GetMeshes().Length;
+                meshCount = gltf.GetMeshes().Length;
                 for (int i = 0; i < meshCount; i++)
                 {
                     Meshes.Add(gltf.GetMesh(i, 0));                                                    
                     Textures.Add(gltf.GetTexture(i));
                 }
-                Loaded = true;
+                Debug.Log("Video loaded");
                 #endregion
             }
             
