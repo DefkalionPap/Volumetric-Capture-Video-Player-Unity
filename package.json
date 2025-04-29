@@ -1,10 +1,11 @@
-{
+{ 
   "name": "com.certh.volumetric_capture_player",
   "version": "1.0.0",
   "displayName": "Volumetric Capture Player",
   "description": "Volumetric Capture Video Player for Unity",
   "unity": "6000.0",
   "unityRelease": "38f1",
+  "documentationUrl": "https://defkalionpap.github.io/Volumetric-Capture-Video-Player/",
   "changelogUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/CHANGELOG.md",
   "licensesUrl": "https://github.com/DefkalionPap/Volumetric-Capture-Video-Importer-Unity/blob/Custom-Package/LICENSE.md",
   "dependencies": {
